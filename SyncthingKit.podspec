@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 	s.name             = "SyncthingKit"
-	s.version          = "0.1.0"
+	s.version          = "0.0.1"
 	s.summary          = "A simple framework to wrap Syncthing REST APIs"
 	s.description      = <<-DESC
 							A simple framework that wraps the Syncthing REST APIs. 
