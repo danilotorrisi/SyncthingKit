@@ -200,27 +200,11 @@ public struct Event: Printable {
 }
 
 public func retrieveNewEvents(lastIdentifier: Int, limit: Int) -> Future<Array<Event>> {
-    let promise = Promise<Array<Event>>()
     
-    // Make the request
-    request(.GET, "http://localhost:8080/rest/events", parameters: ["since": lastIdentifier, "limit": limit], encoding: ParameterEncoding.URL).responseSwiftyJSON { (_, _, results, error) in
+    // Get the events from the Syncthing API.
+    return Syncthing.get("events", parameters: ["since": lastIdentifier, "limit": limit]).map { (json) in
         
-        // If failure.
-        if let anError = error {
-            
-            // Return the failure
-            promise.failure(anError)
-            
-        } else {
-            
-            // Get the events.
-            let events = results.array?.map { Event(json: $0) }.filter { $0 != nil }.map { $0! } ?? []
-                        
-            // Return the success.
-            promise.success(events)
-
-        }
+        // Get all the json object and map to Event
+        return json.array?.map { Event(json: $0)! } ?? []
     }
-    
-    return promise.future
 }

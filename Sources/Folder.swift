@@ -8,8 +8,8 @@
 
 import Foundation
 import BrightFutures
-import Alamofire
 import SwiftyJSON
+import Alamofire
 
 
 public struct Folder : Printable {
@@ -36,25 +36,9 @@ public struct Folder : Printable {
 }
 
 public func retrieveFolders() -> Future<Array<Folder>> {
-    let promise = Promise<Array<Folder>>()
     
-    // Send a GET request.
-    request(.GET, "http://localhost:8080/rest/config").responseSwiftyJSON { (_, _, res, error) in
-
-        // If got an error
-        if let err = error {
-            
-            // Return the failure
-            promise.failure(err)
-            
-        } else {
-
-            // Retun the Folders
-            promise.success(res["Folders"].array?.map { Folder(json: $0) }.filter { $0 != nil }.map { $0! } ?? [])
-        }
-    }
-    
-    return promise.future
+    // Make a GET config request, get the Folders in JSON and return the Folders
+    return Syncthing.get("config").map { (json) in json["Folders"].array?.map({ Folder(json: $0)! }) ?? [] }
 }
 
 

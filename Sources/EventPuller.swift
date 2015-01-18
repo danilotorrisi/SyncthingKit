@@ -10,6 +10,10 @@ import Foundation
 
 private let _shareEventPuller = EventPuller()
 
+
+public typealias ListenerEventBlock = ([Event]) -> (Void)
+public typealias ListenerRemoveBlock = (Void) -> (Void)
+
 /**
 The EventPuller manages the events, retrieving them from the Syncthing API every N sec. You can configure the interval by modifiny the interval property.
 */
@@ -30,6 +34,26 @@ public class EventPuller {
     */
     public var limit: Int = 100
     
+    
+    /** 
+    The listener API allows anyone to listen for incoming events. Every time a new event has been retrieved, the block will be called.
+    It returns a function to be called in order to remove the listener.
+    */
+    public func addListenerBlock(block: ListenerEventBlock) -> ListenerRemoveBlock {
+        
+        // Generate some unique identifier.
+        let uniqueIdentifier = NSUUID().UUIDString
+        
+        // Keep the block
+        listeners[uniqueIdentifier] = block
+        
+        // Return a remove block in order to remove the block from the listeners dictioanry.
+        return { self.listeners[uniqueIdentifier] = nil }
+    }
+    
+    // A private dictionary where the event puller will keep the listener event block.
+    private var listeners: [String: ListenerEventBlock] = [:]
+    
     /**
     The last event retrieved. Every time pull() has been called, it updates the EventPuller.lastIdentifier with the latest Event identifier found. Returns nil when pull has not been called yet.
     */
@@ -45,7 +69,7 @@ public class EventPuller {
     }
 
     
-    // The pull function that has been called every pull interval
+    // The pull function that has wil be called internally every pull interval
     func pull() {
         
         // Get the last identifier.
@@ -67,6 +91,9 @@ public class EventPuller {
                 
                 // Pull again after an interfval msec.
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(self.interval * NSEC_PER_MSEC)), dispatch_get_main_queue(), self.pull)
+                
+                // Call the listener blocks.
+                for (_, block) in self.listeners { block(events) }
             }
         
         }
