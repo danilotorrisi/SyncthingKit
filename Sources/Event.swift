@@ -203,7 +203,7 @@ public func retrieveNewEvents(lastIdentifier: Int, limit: Int) -> Future<Array<E
     let promise = Promise<Array<Event>>()
     
     // Make the request
-    request(.GET, "http://localhost:8080/rest/events", parameters: ["since": lastIdentifier], encoding: ParameterEncoding.URL).responseSwiftyJSON { (_, _, results, error) in
+    request(.GET, "http://localhost:8080/rest/events", parameters: ["since": lastIdentifier, "limit": limit], encoding: ParameterEncoding.URL).responseSwiftyJSON { (_, _, results, error) in
         
         // If failure.
         if let anError = error {
